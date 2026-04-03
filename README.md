@@ -4,6 +4,10 @@ SummaryScape is a smart YouTube video summarizer app. Just paste any YouTube lin
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+Here is the view of SummaryScape actually look :
+
+![image alt](https://github.com/Rajiv-mandal04/Employee-Management-System/blob/main/Screenshot%202025-07-23%20230149.png)
+
 ## Get started
 
 1. Install dependencies
