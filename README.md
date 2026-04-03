@@ -1,5 +1,7 @@
 # Summaryscape App👋
 
+SummaryScape is a smart YouTube video summarizer app. Just paste any YouTube link, and it instantly extracts the transcript, cleans it, translates if needed, and generates a concise summary — saving you time while keeping you informed.
+
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
