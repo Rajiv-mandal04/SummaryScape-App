@@ -1,98 +1,154 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [url, setUrl] = useState("");
+  const [summary, setSummary] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleSummarize = async () => {
+    if (!url) {
+      setSummary("Please paste a YouTube URL");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setSummary("Processing...");
+      setTitle("");
+
+      // ✅ Use GET method with query param (matches backend /transcript)
+      const backendIP = "192.168.1.69"; // <-- replace with your PC LAN IP
+      const response = await fetch(
+        `http://${backendIP}:5000/transcript?url=${encodeURIComponent(url)}`
+      );
+
+      const data = await response.json();
+
+      if (data.summary) {
+        setSummary(data.summary);
+        setTitle(data.title || "");
+      } else if (data.error) {
+        setSummary("Error: " + data.error);
+      } else {
+        setSummary("No summary found");
+      }
+    } catch (error) {
+      setSummary("Error connecting to backend");
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>🎥 SummaryScape</Text>
+
+      <Text style={styles.subtitle}>
+        Paste any YouTube video link and get a quick summary
+      </Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Paste YouTube Link..."
+        placeholderTextColor="#94a3b8"
+        value={url}
+        onChangeText={setUrl}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={handleSummarize}>
+        <Text style={styles.buttonText}>
+          {loading ? "Summarizing..." : "Summarize Video"}
+        </Text>
+      </TouchableOpacity>
+
+      {title ? (
+        <Text style={styles.videoTitle}>🎬 {title}</Text>
+      ) : null}
+
+      <View style={styles.resultBox}>
+        <Text style={styles.resultTitle}>Summary</Text>
+        <Text style={styles.resultText}>
+          {summary || "Your summary will appear here..."}
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flexGrow: 1,
+    backgroundColor: "#0f172a",
+    justifyContent: "center",
+    padding: 25,
   },
-  stepContainer: {
-    gap: 8,
+  title: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: "#fff",
+    textAlign: "center",
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    textAlign: "center",
+    color: "#94a3b8",
+    marginBottom: 25,
+    fontSize: 14,
+  },
+  input: {
+    backgroundColor: "#1e293b",
+    padding: 16,
+    borderRadius: 12,
+    color: "white",
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+  button: {
+    backgroundColor: "#6366f1",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 25,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  videoTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  resultBox: {
+    backgroundColor: "#1e293b",
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+  resultTitle: {
+    color: "#fff",
+    fontWeight: "700",
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  resultText: {
+    color: "#e2e8f0",
+    lineHeight: 22,
+    fontSize: 14,
   },
 });
